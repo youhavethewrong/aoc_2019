@@ -90,13 +90,13 @@ pub fn points_visited(origin: Point, vector: Vector) -> Vec<Point> {
         Vector::D { m } => (origin.y - m..origin.y)
             .map(|i| Point { x: origin.x, y: i })
             .collect(),
-        Vector::U { m } => (origin.y + 1..origin.y + m + 1)
+        Vector::U { m } => (origin.y + 1..=origin.y + m)
             .map(|i| Point { x: origin.x, y: i })
             .collect(),
         Vector::L { m } => (origin.x - m..origin.x)
             .map(|i| Point { x: i, y: origin.y })
             .collect(),
-        Vector::R { m } => (origin.x + 1..origin.x + m + 1)
+        Vector::R { m } => (origin.x + 1..=origin.x + m)
             .map(|i| Point { x: i, y: origin.y })
             .collect(),
     }
