@@ -51,7 +51,7 @@ pub fn intcode_program(codes: Vec<usize>) -> Vec<usize> {
     program_results
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 pub enum Vector {
     U { m: usize },
     D { m: usize },
@@ -59,7 +59,7 @@ pub enum Vector {
     R { m: usize },
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct Point {
     x: usize,
     y: usize,
@@ -100,6 +100,17 @@ pub fn points_visited(origin: Point, vector: Vector) -> Vec<Point> {
             .map(|i| Point { x: i, y: origin.y })
             .collect(),
     }
+}
+
+pub fn generate_points(origin: Point, vector_sequence: Vec<Vector>) -> Vec<Point> {
+    let points: Vec<Point> = vec![origin];
+    let visited = vector_sequence.iter().fold(points, |mut acc, v| {
+        let last_visited = acc.last().unwrap().clone();
+        let mut visited = points_visited(last_visited, *v);
+        acc.append(&mut visited);
+        acc
+    });
+    visited[1..].to_vec()
 }
 
 #[cfg(test)]
@@ -178,5 +189,25 @@ mod tests {
         let vector_4 = Vector::D { m: 2 };
         let expected_4 = vec![Point { x: 1, y: 2 }, Point { x: 1, y: 3 }];
         assert_eq!(expected_4, points_visited(origin_4, vector_4));
+    }
+
+    #[test]
+    fn test_generate_points() {
+        let origin = Point { x: 1, y: 1 };
+        let sequence = vec![
+            Vector::U { m: 2 },
+            Vector::R { m: 2 },
+            Vector::D { m: 1 },
+            Vector::L { m: 1 },
+        ];
+        let expected = vec![
+            Point { x: 1, y: 2 },
+            Point { x: 1, y: 3 },
+            Point { x: 2, y: 3 },
+            Point { x: 3, y: 3 },
+            Point { x: 3, y: 2 },
+            Point { x: 2, y: 2 },
+        ];
+        assert_eq!(expected, generate_points(origin, sequence));
     }
 }
