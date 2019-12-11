@@ -51,6 +51,57 @@ pub fn intcode_program(codes: Vec<usize>) -> Vec<usize> {
     program_results
 }
 
+#[derive(Hash, Eq, PartialEq, Debug)]
+pub enum Vector {
+    U { m: usize },
+    D { m: usize },
+    L { m: usize },
+    R { m: usize },
+}
+
+#[derive(Hash, Eq, PartialEq, Debug)]
+pub struct Point {
+    x: usize,
+    y: usize,
+}
+
+pub fn parse_vector(input: String) -> Vector {
+    let d = &input[..1];
+    let m = &input[1..];
+    match d {
+        "U" => Vector::U {
+            m: usize::from_str_radix(m, 10).unwrap(),
+        },
+        "D" => Vector::D {
+            m: usize::from_str_radix(m, 10).unwrap(),
+        },
+        "L" => Vector::L {
+            m: usize::from_str_radix(m, 10).unwrap(),
+        },
+        "R" => Vector::R {
+            m: usize::from_str_radix(m, 10).unwrap(),
+        },
+        _ => panic!(),
+    }
+}
+
+pub fn points_visited(origin: Point, vector: Vector) -> Vec<Point> {
+    match vector {
+        Vector::D { m } => (origin.y - m..origin.y)
+            .map(|i| Point { x: origin.x, y: i })
+            .collect(),
+        Vector::U { m } => (origin.y + 1..origin.y + m + 1)
+            .map(|i| Point { x: origin.x, y: i })
+            .collect(),
+        Vector::L { m } => (origin.x - m..origin.x)
+            .map(|i| Point { x: i, y: origin.y })
+            .collect(),
+        Vector::R { m } => (origin.x + 1..origin.x + m + 1)
+            .map(|i| Point { x: i, y: origin.y })
+            .collect(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,5 +148,35 @@ mod tests {
         let input = "0,1,2,4".to_string();
         let expected: Vec<usize> = vec![0, 1, 2, 4];
         assert_eq!(expected, parse_intcode_input(input));
+    }
+
+    #[test]
+    fn test_vector_parse() {
+        let input = "D999".to_string();
+        let expected = Vector::D { m: 999 };
+        assert_eq!(expected, parse_vector(input));
+    }
+
+    #[test]
+    fn test_points_visited() {
+        let origin_1 = Point { x: 0, y: 0 };
+        let vector_1 = Vector::R { m: 2 };
+        let expected_1 = vec![Point { x: 1, y: 0 }, Point { x: 2, y: 0 }];
+        assert_eq!(expected_1, points_visited(origin_1, vector_1));
+
+        let origin_2 = Point { x: 2, y: 2 };
+        let vector_2 = Vector::L { m: 2 };
+        let expected_2 = vec![Point { x: 0, y: 2 }, Point { x: 1, y: 2 }];
+        assert_eq!(expected_2, points_visited(origin_2, vector_2));
+
+        let origin_3 = Point { x: 1, y: 1 };
+        let vector_3 = Vector::U { m: 2 };
+        let expected_3 = vec![Point { x: 1, y: 2 }, Point { x: 1, y: 3 }];
+        assert_eq!(expected_3, points_visited(origin_3, vector_3));
+
+        let origin_4 = Point { x: 1, y: 4 };
+        let vector_4 = Vector::D { m: 2 };
+        let expected_4 = vec![Point { x: 1, y: 2 }, Point { x: 1, y: 3 }];
+        assert_eq!(expected_4, points_visited(origin_4, vector_4));
     }
 }
