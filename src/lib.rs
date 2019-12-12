@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 pub fn fuel_requirements(mass: f64) -> f64 {
     (mass / 3.0).floor() - 2.0
 }
@@ -113,6 +115,12 @@ pub fn generate_points(origin: Point, vector_sequence: Vec<Vector>) -> Vec<Point
     visited[1..].to_vec()
 }
 
+pub fn find_intersections(left: Vec<Point>, right: Vec<Point>) -> Vec<Point> {
+    let left_set: HashSet<Point> = left.iter().cloned().collect();
+    let right_set: HashSet<Point> = right.iter().cloned().collect();
+    left_set.intersection(&right_set).cloned().collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -209,5 +217,13 @@ mod tests {
             Point { x: 2, y: 2 },
         ];
         assert_eq!(expected, generate_points(origin, sequence));
+    }
+
+    #[test]
+    fn test_find_intersections() {
+        let l = vec![Point { x: 1, y: 2 }, Point { x: 5, y: 2 }];
+        let r = vec![Point { x: 5, y: 2 }, Point { x: 0, y: 3 }];
+        let expected = vec![Point { x: 5, y: 2 }];
+        assert_eq!(expected, find_intersections(l, r));
     }
 }
