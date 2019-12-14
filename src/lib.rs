@@ -156,7 +156,6 @@ pub fn manhattan_distance_of_closest_intersection(route_a: String, route_b: Stri
         .cloned()
         .map(|i| manhattan_distance(origin.clone(), i))
         .collect();
-    println!("what the f is {:?}", w);
     *w.iter().min().unwrap()
 }
 
