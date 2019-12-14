@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+// FUEL
 pub fn fuel_requirements(mass: f64) -> f64 {
     (mass / 3.0).floor() - 2.0
 }
@@ -17,6 +18,7 @@ pub fn fuel_for_fuel(mass: f64) -> f64 {
     sum
 }
 
+// INTCODE
 pub fn parse_intcode_input(input: String) -> Vec<usize> {
     input
         .trim()
@@ -53,6 +55,7 @@ pub fn intcode_program(codes: Vec<usize>) -> Vec<usize> {
     program_results
 }
 
+// MANHATTAN
 #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 pub enum Vector {
     U { m: usize },
@@ -63,8 +66,8 @@ pub enum Vector {
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct Point {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
 pub fn parse_vector(input: String) -> Vector {
@@ -89,16 +92,24 @@ pub fn parse_vector(input: String) -> Vector {
 
 pub fn points_visited(origin: Point, vector: Vector) -> Vec<Point> {
     match vector {
-        Vector::D { m } => (origin.y - m..origin.y)
+        Vector::D { m } => {
+            let mut v: Vec<Point> = (origin.y - m as isize..origin.y)
+                .map(|i| Point { x: origin.x, y: i })
+                .collect();
+            v.reverse();
+            v
+        }
+        Vector::U { m } => (origin.y + 1 as isize..=origin.y + m as isize)
             .map(|i| Point { x: origin.x, y: i })
             .collect(),
-        Vector::U { m } => (origin.y + 1..=origin.y + m)
-            .map(|i| Point { x: origin.x, y: i })
-            .collect(),
-        Vector::L { m } => (origin.x - m..origin.x)
-            .map(|i| Point { x: i, y: origin.y })
-            .collect(),
-        Vector::R { m } => (origin.x + 1..=origin.x + m)
+        Vector::L { m } => {
+            let mut v: Vec<Point> = (origin.x - m as isize..origin.x)
+                .map(|i| Point { x: i, y: origin.y })
+                .collect();
+            v.reverse();
+            v
+        }
+        Vector::R { m } => (origin.x + 1 as isize..=origin.x + m as isize)
             .map(|i| Point { x: i, y: origin.y })
             .collect(),
     }
@@ -119,6 +130,34 @@ pub fn find_intersections(left: Vec<Point>, right: Vec<Point>) -> Vec<Point> {
     let left_set: HashSet<Point> = left.iter().cloned().collect();
     let right_set: HashSet<Point> = right.iter().cloned().collect();
     left_set.intersection(&right_set).cloned().collect()
+}
+
+pub fn manhattan_distance(origin: Point, destination: Point) -> usize {
+    (origin.x as i64 - destination.x as i64).abs() as usize
+        + (origin.y as i64 - destination.y as i64).abs() as usize
+}
+
+pub fn manhattan_distance_of_closest_intersection(route_a: String, route_b: String) -> usize {
+    let origin = Point { x: 1, y: 1 };
+    let route_a_vectors = route_a
+        .split(",")
+        .map(|v| parse_vector(v.to_string()))
+        .collect();
+    let route_b_vectors = route_b
+        .split(",")
+        .map(|v| parse_vector(v.to_string()))
+        .collect();
+
+    let route_a_points = generate_points(origin.clone(), route_a_vectors);
+    let route_b_points = generate_points(origin.clone(), route_b_vectors);
+    let inx = find_intersections(route_a_points, route_b_points);
+    let w: Vec<usize> = inx
+        .iter()
+        .cloned()
+        .map(|i| manhattan_distance(origin.clone(), i))
+        .collect();
+    println!("what the f is {:?}", w);
+    *w.iter().min().unwrap()
 }
 
 #[cfg(test)]
@@ -185,7 +224,7 @@ mod tests {
 
         let origin_2 = Point { x: 2, y: 2 };
         let vector_2 = Vector::L { m: 2 };
-        let expected_2 = vec![Point { x: 0, y: 2 }, Point { x: 1, y: 2 }];
+        let expected_2 = vec![Point { x: 1, y: 2 }, Point { x: 0, y: 2 }];
         assert_eq!(expected_2, points_visited(origin_2, vector_2));
 
         let origin_3 = Point { x: 1, y: 1 };
@@ -195,7 +234,7 @@ mod tests {
 
         let origin_4 = Point { x: 1, y: 4 };
         let vector_4 = Vector::D { m: 2 };
-        let expected_4 = vec![Point { x: 1, y: 2 }, Point { x: 1, y: 3 }];
+        let expected_4 = vec![Point { x: 1, y: 3 }, Point { x: 1, y: 2 }];
         assert_eq!(expected_4, points_visited(origin_4, vector_4));
     }
 
@@ -225,5 +264,32 @@ mod tests {
         let r = vec![Point { x: 5, y: 2 }, Point { x: 0, y: 3 }];
         let expected = vec![Point { x: 5, y: 2 }];
         assert_eq!(expected, find_intersections(l, r));
+    }
+
+    #[test]
+    fn test_manhattan_distance() {
+        let o = Point { x: 1, y: 1 };
+        let p = Point { x: 4, y: 4 };
+        let expected = 6;
+        assert_eq!(expected, manhattan_distance(o, p));
+    }
+
+    #[test]
+    fn test_manhattan_distance_of_closest_intersection() {
+        let route_a = "R75,D30,R83,U83,L12,D49,R71,U7,L72".to_string();
+        let route_b = "U62,R66,U55,R34,D71,R55,D58,R83".to_string();
+        let expected = 159;
+        assert_eq!(
+            expected,
+            manhattan_distance_of_closest_intersection(route_a, route_b)
+        );
+
+        let route_c = "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51".to_string();
+        let route_d = "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7".to_string();
+        let expected = 135;
+        assert_eq!(
+            expected,
+            manhattan_distance_of_closest_intersection(route_c, route_d)
+        );
     }
 }
