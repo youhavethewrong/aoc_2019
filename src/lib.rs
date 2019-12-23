@@ -159,6 +159,35 @@ pub fn manhattan_distance_of_closest_intersection(route_a: String, route_b: Stri
     *w.iter().min().unwrap()
 }
 
+// PASSWORD
+pub fn password_validation(potential_password: &str) -> bool {
+    let valid_length = potential_password.len() == 6;
+    let parts: Vec<&str> = potential_password.split("").filter(|&s| s != "").collect();
+    let mut doubles = false;
+    let mut increasing = true;
+    let mut previous = "";
+    for i in &parts {
+        if i == &previous {
+            doubles = true;
+        }
+        if i < &previous {
+            increasing = false;
+        }
+        previous = i;
+    }
+    valid_length && doubles && increasing
+}
+
+pub fn count_viable_passwords_in_range(start: usize, end: usize) -> usize {
+    let mut count = 0;
+    for i in start..end {
+        if password_validation(&i.to_string()) {
+            count += 1;
+        }
+    }
+    count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -290,5 +319,26 @@ mod tests {
             expected,
             manhattan_distance_of_closest_intersection(route_c, route_d)
         );
+    }
+
+    #[test]
+    fn test_password_validation() {
+        assert_eq!(true, password_validation("111111"));
+        assert_eq!(true, password_validation("122345"));
+        assert_eq!(
+            false,
+            password_validation("123789"),
+            "no doubles, but doesn't decrease"
+        );
+        assert_eq!(
+            false,
+            password_validation("223450"),
+            "doubles, but decreases"
+        );
+    }
+
+    #[test]
+    fn test_count_viable_passwords() {
+        assert_eq!(5, count_viable_passwords_in_range(123354, 123361));
     }
 }
