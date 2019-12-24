@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 // FUEL
 pub fn fuel_requirements(mass: f64) -> f64 {
@@ -163,19 +163,22 @@ pub fn manhattan_distance_of_closest_intersection(route_a: String, route_b: Stri
 pub fn password_validation(potential_password: &str) -> bool {
     let valid_length = potential_password.len() == 6;
     let parts: Vec<&str> = potential_password.split("").filter(|&s| s != "").collect();
-    let mut doubles = false;
+    let mut streaks: HashMap<&str, usize> = HashMap::new();
     let mut increasing = true;
     let mut previous = "";
+    let two: usize = 2;
     for i in &parts {
-        if i == &previous {
-            doubles = true;
-        }
         if i < &previous {
             increasing = false;
         }
+        if i == &previous {
+            let v = streaks.entry(i).or_insert(1);
+            *v += 1;
+        }
         previous = i;
     }
-    valid_length && doubles && increasing
+    let doubles_count = streaks.values().filter(|&v| v == &two).count();
+    valid_length && increasing && doubles_count > 0
 }
 
 pub fn count_viable_passwords_in_range(start: usize, end: usize) -> usize {
@@ -323,8 +326,11 @@ mod tests {
 
     #[test]
     fn test_password_validation() {
-        assert_eq!(true, password_validation("111111"));
+        assert_eq!(true, password_validation("111122"));
         assert_eq!(true, password_validation("122345"));
+        assert_eq!(false, password_validation("111111"));
+        assert_eq!(false, password_validation("112211"));
+        assert_eq!(false, password_validation("123444"));                    ;
         assert_eq!(
             false,
             password_validation("123789"),
@@ -335,10 +341,5 @@ mod tests {
             password_validation("223450"),
             "doubles, but decreases"
         );
-    }
-
-    #[test]
-    fn test_count_viable_passwords() {
-        assert_eq!(5, count_viable_passwords_in_range(123354, 123361));
     }
 }
