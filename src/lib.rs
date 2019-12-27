@@ -22,14 +22,14 @@ pub fn fuel_for_fuel(mass: f64) -> f64 {
 pub fn parse_intcode_input(input: String) -> Vec<usize> {
     input
         .trim()
-        .split(",")
+        .split(',')
         .map(|i| i.parse::<usize>().unwrap())
         .collect()
 }
 
 pub fn intcode_program(codes: Vec<usize>) -> Vec<usize> {
     let mut pos = 0;
-    let mut program_results = codes.clone();
+    let mut program_results = codes;
     while program_results[pos] != 99 {
         let current = &program_results[pos..pos + 3];
         match current[0] {
@@ -140,11 +140,11 @@ pub fn manhattan_distance(origin: Point, destination: Point) -> usize {
 pub fn manhattan_distance_of_closest_intersection(route_a: String, route_b: String) -> usize {
     let origin = Point { x: 1, y: 1 };
     let route_a_vectors = route_a
-        .split(",")
+        .split(',')
         .map(|v| parse_vector(v.to_string()))
         .collect();
     let route_b_vectors = route_b
-        .split(",")
+        .split(',')
         .map(|v| parse_vector(v.to_string()))
         .collect();
 
@@ -330,7 +330,7 @@ mod tests {
         assert_eq!(true, password_validation("122345"));
         assert_eq!(false, password_validation("111111"));
         assert_eq!(false, password_validation("112211"));
-        assert_eq!(false, password_validation("123444"));                    ;
+        assert_eq!(false, password_validation("123444"));
         assert_eq!(
             false,
             password_validation("123789"),
